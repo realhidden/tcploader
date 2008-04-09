@@ -1,0 +1,21 @@
+Just a small Front SD ELF loader with a menu 
+Written by svpe, #wiidev@efnet, svpe@gmx.net
+
+Create an elf directory on your SD card and put all your ELF files in there.
+You can load the main file with a trucha disc or the twilight hack.
+
+The miniloader is just a quick hack to make this work with trucha discs because
+the apploader i used didn't seem to support a non-standard entry point.
+
+Just type make to compile (Hint: a precompiled binary is included.)
+
+There are probably still some bugs so don't blame me if something goes wrong.
+
+See COPYING for the license (GNU GPL 2; and _only_ version 2)
+
+Credits:
+Internal SD stuff by bushing, marcan and maybe some more people. I just reversed the twilight hack elf loader.
+FatFs by elm-chan.org
+ELF loading code taken from geckoloader by dhewg, #wiidev at efnet. Written by dhewg, tmbinc and William L. Pitts
+People from #wiidev who helped me with a few problems ;)
+
