@@ -1,0 +1,16 @@
+TCP Elf Loader v0.1
+(c) 2008 Sven Peter, svpe in #wiidev at efnet/blitzed or svpe [at] gmx (dot) net
+
+based on bushing's title_lister.c
+(c) 2008 bushing
+
+Launch the included elf or dol using your favourite method of launching homebrew one
+your console. It will then start listening on port 8080 and wait for a connection of
+the client.
+
+The win32 version of the client doesn't work currently. You'll have to use linux to test this.
+
+wii/ contains the wii code
+pc/ contains a small client to send your file
+
+Type 'make' to build it yourself and don't bother me when it doesn't build for you...
