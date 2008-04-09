@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 			printf("Please check the IP address and press A to continue\n");
 			wait_for(PAD_BUTTON_A);
 
-			if(((addr.sin_addr.s_addr >> 24) & 0xFF) != 192 || ((addr.sin_addr.s_addr >> 16) & 0xFF) != 168)
+			if(((addr.sin_addr.s_addr >> 24) & 0xFF) != oct[0] || ((addr.sin_addr.s_addr >> 16) & 0xFF) != oct[1])
 			{
 				printf("WARNING: the client is not connecting from your local network.\n");
 				printf("Please check if you really want to run a file from this IP as it\n");

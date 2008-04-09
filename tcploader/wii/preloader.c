@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	void (*ep)();
 	unsigned long level;
 
-	// doesn't work for some odd reason when this tuff is not done :/
+	// doesn't work for some odd reason when this stuff is not done :/
 	VIDEO_Init();
 	PAD_Init();
 
