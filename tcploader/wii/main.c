@@ -53,6 +53,7 @@ static inline void wait_for(u32 btn)
 		PAD_ScanPads();
 		if(PAD_ButtonsHeld(0) & btn)
 			break;
+		VIDEO_WaitVSync();
 	}
 }
 
@@ -85,19 +86,19 @@ int establish(unsigned short portnum) {
 
 // wait for a connection to occur on a socket created with establish()
 
-int get_connection(int s)
+int get_connection(int s, struct sockaddr_in *sa)
 { 
   int t;                  /* socket of connection */
-  struct sockaddr_in sa;
-  sa.sin_len = 8;
-  sa.sin_family = AF_INET;
+//  struct sockaddr_in sa;
+  sa->sin_len = 8;
+  sa->sin_family = AF_INET;
   u32 buflen = 8;
-  t = net_accept(s,(struct sockaddr *)&sa, &buflen);
+  t = net_accept(s,(struct sockaddr *)sa, &buflen);
   printf("Incoming connection from %d.%d.%d.%d\n",
-	 (sa.sin_addr.s_addr >> 24) & 0xFF,
-	 (sa.sin_addr.s_addr >> 16) & 0xFF,
-	 (sa.sin_addr.s_addr >> 8) & 0xFF,
-	 (sa.sin_addr.s_addr) & 0xFF);
+	 (sa->sin_addr.s_addr >> 24) & 0xFF,
+	 (sa->sin_addr.s_addr >> 16) & 0xFF,
+	 (sa->sin_addr.s_addr >> 8) & 0xFF,
+	 (sa->sin_addr.s_addr) & 0xFF);
 
   return t;
 }
@@ -146,9 +147,10 @@ int write_data(int s, char *buf, int n)
 int main(int argc, char **argv)
 {
 	unsigned long level;
-	u32 res, offset, read, size, ip;
+	u32 res, offset, read, size, ip, client;
 	u8 *oct = (u8 *)&ip;
 	u8 *bfr[READ_SIZE];
+	struct sockaddr_in addr;
 	void (*ep)();
 
 	VIDEO_Init();
@@ -206,54 +208,69 @@ int main(int argc, char **argv)
 	printf("fd = %d\n", listen);
 	printf("You Wii's ip address is %d.%d.%d.%d\n", oct[0], oct[1], oct[2], oct[3]);
 	printf("Waiting for connection\n");
-	s32 client = get_connection(listen);
 
-	if(client > 0)
+	while(1)
 	{
-		printf("client connected..\n");
+		client = get_connection(listen, &addr);
 
-		if(read_data(client, (char *)&size, 4) < 0)
+		if(client > 0)
 		{
-			printf("read_data() error while reading filesize\n");
+			printf("client connected..\n");
+			printf("Please check the IP address and press A to continue\n");
+			wait_for(PAD_BUTTON_A);
+
+			if(((addr.sin_addr.s_addr >> 24) & 0xFF) != 192 || ((addr.sin_addr.s_addr >> 16) & 0xFF) != 168)
+			{
+				printf("WARNING: the client is not connecting from your local network.\n");
+				printf("Please check if you really want to run a file from this IP as it\n");
+				printf("may be something that bricks your wii from someone you don't even know!!\n");
+				printf("Press Z if you really want to continue!\n");
+				wait_for(PAD_TRIGGER_Z);
+			}
+
+			if(read_data(client, (char *)&size, 4) < 0)
+			{
+				printf("read_data() error while reading filesize\n");
+				net_close(client);
+				net_close(listen);
+				goto redo;
+			}
+
+			printf("size: %d\n", size);
+			printf("reading data, please wait...\n");
+
+			offset = 0;
+			while(offset < size && (read = read_data(client, (char *)bfr, (size - offset) > READ_SIZE ? READ_SIZE : (size - offset))) > 0)
+			{
+				memcpy(data + offset, bfr, READ_SIZE);
+				offset += read;
+			}
 			net_close(client);
 			net_close(listen);
+
+			res = valid_elf_image(data);
+			if(res != 1)
+			{
+				printf("Invalid ELF image.\n");
+				printf("assuming DOL image. your wii will crash if this is just some random file...\n");
+				ep = (void(*)())load_dol_image(data, 1);
+			}
+			else
+			{
+				printf("Loading ELF image...\n");
+				ep = (void(*)())load_elf_image(data);
+			}
+			printf("entry point: 0x%08X\n", (unsigned int)ep);
+			printf("shutting down...\n");
+			__IOS_ShutdownSubsystems();
+			_CPU_ISR_Disable(level);
+			__exception_closeall();
+			printf("jumping to entry point now...\n\n\n\n");
+			ep();
+			_CPU_ISR_Restore(level);
+			printf("this should not happen :/\n\n");
 			goto redo;
 		}
-
-		printf("size: %d\n", size);
-		printf("reading data, please wait...\n");
-
-		offset = 0;
-		while(offset < size && (read = read_data(client, (char *)bfr, (size - offset) > READ_SIZE ? READ_SIZE : (size - offset))) > 0)
-		{
-			memcpy(data + offset, bfr, READ_SIZE);
-			offset += read;
-		}
-		net_close(client);
-		net_close(listen);
-
-		res = valid_elf_image(data);
-		if(res != 1)
-		{
-			printf("Invalid ELF image.\n");
-			printf("assuming DOL image. your wii will crash if this is just some random file...\n");
-			ep = (void(*)())load_dol_image(data, 1);
-		}
-		else
-		{
-			printf("Loading ELF image...\n");
-			ep = (void(*)())load_elf_image(data);
-		}
-		printf("entry point: 0x%08X\n", (unsigned int)ep);
-		printf("shutting down...\n");
-		__IOS_ShutdownSubsystems();
-		_CPU_ISR_Disable(level);
-		__exception_closeall();
-		printf("jumping to entry point now...\n\n\n\n");
-		ep();
-		_CPU_ISR_Restore(level);
-		printf("this should not happen :/\n\n");
-		goto redo;
 	}
 
 	// never reached but fixes a gcc warning
