@@ -46,13 +46,15 @@ static GXRModeObj *rmode = NULL;
 
 u8 *data = (u8 *)0x92000000;
 
-static inline void wait_for(u32 btn)
+static inline u32 wait_for(u32 btn)
 {
+	u32 btns;
 	while(1)
 	{
 		PAD_ScanPads();
-		if(PAD_ButtonsHeld(0) & btn)
-			break;
+		btns = PAD_ButtonsHeld(0);
+		if(btns & btn)
+			return btns;
 		VIDEO_WaitVSync();
 	}
 }
@@ -147,7 +149,7 @@ int write_data(int s, char *buf, int n)
 int main(int argc, char **argv)
 {
 	unsigned long level;
-	u32 res, offset, read, size, ip, client;
+	u32 res, offset, read, size, ip, client, btn;
 	u8 *oct = (u8 *)&ip;
 	u8 *bfr[READ_SIZE];
 	struct sockaddr_in addr;
@@ -207,17 +209,22 @@ int main(int argc, char **argv)
 	ip = net_gethostip();
 	printf("fd = %d\n", listen);
 	printf("You Wii's ip address is %d.%d.%d.%d\n", oct[0], oct[1], oct[2], oct[3]);
-	printf("Waiting for connection\n");
 
 	while(1)
 	{
+		printf("Waiting for connection\n");
 		client = get_connection(listen, &addr);
 
 		if(client > 0)
 		{
 			printf("client connected..\n");
-			printf("Please check the IP address and press A to continue\n");
-			wait_for(PAD_BUTTON_A);
+			printf("Please check the IP address and press A to continue and Z to abort\n");
+			btn = wait_for(PAD_BUTTON_A | PAD_TRIGGER_Z);
+			if(btn & PAD_TRIGGER_Z)
+			{
+				net_close(client);
+				continue;
+			}
 
 			if(((addr.sin_addr.s_addr >> 24) & 0xFF) != oct[0] || ((addr.sin_addr.s_addr >> 16) & 0xFF) != oct[1])
 			{
@@ -225,7 +232,13 @@ int main(int argc, char **argv)
 				printf("Please check if you really want to run a file from this IP as it\n");
 				printf("may be something that bricks your wii from someone you don't even know!!\n");
 				printf("Press Z if you really want to continue!\n");
-				wait_for(PAD_TRIGGER_Z);
+				printf("Press A to deny the connection and wait for a new client\n");
+				btn = wait_for(PAD_TRIGGER_Z | PAD_BUTTON_A);
+				if(btn & PAD_BUTTON_A)
+				{
+					net_close(client);
+					continue;
+				}
 			}
 
 			if(read_data(client, (char *)&size, 4) < 0)
