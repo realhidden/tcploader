@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 		VIDEO_WaitVSync();
 	
 	printf("loading, please wait...\n");
-	memcpy((void *)0x90000020, loader_dol, loader_dol_size);
+//	memcpy((void *)0x90000020, loader_dol, loader_dol_size);
 //	memcpy((void *)0x80001800, stub_bin, stub_bin_size);
 
 	ep = (void(*)())load_dol_image((void *)loader_dol, 1);
