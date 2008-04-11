@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 			rmode = &TVMpal480IntDf;
 			break;
 		case VI_EURGB60:
-			vmode = &TVNtsc480Prog;
+			rmode = &TVNtsc480Prog;
 			break;
 		default:
 		case VI_NTSC:
