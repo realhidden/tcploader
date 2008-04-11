@@ -31,6 +31,10 @@ int main(int argc, char *argv[])
 			break;
 		case VI_MPAL:
 			rmode = &TVMpal480IntDf;
+			break;
+		case VI_EURGB60:
+			vmode = &TVNtsc480Prog;
+			break;
 		default:
 		case VI_NTSC:
 			rmode = &TVNtsc480IntDf;
