@@ -96,7 +96,7 @@ int get_connection(int s, struct sockaddr_in *sa)
   sa->sin_family = AF_INET;
   u32 buflen = 8;
   t = net_accept(s,(struct sockaddr *)sa, &buflen);
-  printf("Incoming connection from %d.%d.%d.%d\n",
+  printf(" Incoming connection from %d.%d.%d.%d\n",
 	 (sa->sin_addr.s_addr >> 24) & 0xFF,
 	 (sa->sin_addr.s_addr >> 16) & 0xFF,
 	 (sa->sin_addr.s_addr >> 8) & 0xFF,
@@ -188,41 +188,41 @@ int main(int argc, char **argv)
  
  	__STM_Init();
 
-	printf("\n\nTCP ELF Loader\n");
-	printf("(c) 2008 Sven Peter\n");
-	printf("Based on bushing's title_listener.c and his networking code.\n");
-	printf("(c) 2008 bushing\n\n");
+	printf("\n\n TCP ELF Loader\n");
+	printf(" (c) 2008 Sven Peter\n");
+	printf(" Based on bushing's title_listener.c and his networking code.\n");
+	printf(" (c) 2008 bushing\n\n");
 
 	redo:
-	printf("Press A to continue.\n");
+	printf(" Press A to continue.\n");
 	wait_for(PAD_BUTTON_A);
 
-	printf("net_init(), please wait...\n");
+	printf(" net_init(), please wait...\n");
 	net_init();
 
 
-	printf("Opening socket on port 8080\n");
+	printf(" Opening socket on port 8080\n");
 	s32 listen = establish(8080);
 
 	if(listen < 0)
 	{
-		printf("establish() returned < 0.\n");
+		printf(" establish() returned < 0.\n");
 		goto redo;
 	}
 
 	ip = net_gethostip();
-	printf("fd = %d\n", listen);
-	printf("You Wii's ip address is %d.%d.%d.%d\n", oct[0], oct[1], oct[2], oct[3]);
+	printf(" fd = %d\n", listen);
+	printf(" You Wii's ip address is %d.%d.%d.%d\n", oct[0], oct[1], oct[2], oct[3]);
 
 	while(1)
 	{
-		printf("Waiting for connection\n");
+		printf(" Waiting for connection\n");
 		client = get_connection(listen, &addr);
 
 		if(client > 0)
 		{
-			printf("client connected..\n");
-			printf("Please check the IP address and press A to continue and Z to abort\n");
+			printf(" client connected..\n");
+			printf(" Please check the IP address and press A to continue and Z to abort\n");
 			btn = wait_for(PAD_BUTTON_A | PAD_TRIGGER_Z);
 			if(btn & PAD_TRIGGER_Z)
 			{
@@ -232,11 +232,11 @@ int main(int argc, char **argv)
 
 			if(((addr.sin_addr.s_addr >> 24) & 0xFF) != oct[0] || ((addr.sin_addr.s_addr >> 16) & 0xFF) != oct[1])
 			{
-				printf("WARNING: the client is not connecting from your local network.\n");
-				printf("Please check if you really want to run a file from this IP as it\n");
-				printf("may be something that bricks your wii from someone you don't even know!!\n");
-				printf("Press Z if you really want to continue!\n");
-				printf("Press A to deny the connection and wait for a new client\n");
+				printf(" WARNING: the client is not connecting from your local network.\n");
+				printf(" Please check if you really want to run a file from this IP as it\n");
+				printf(" may be something that bricks your wii from someone you don't even know!!\n");
+				printf(" Press Z if you really want to continue!\n");
+				printf(" Press A to deny the connection and wait for a new client\n");
 				btn = wait_for(PAD_TRIGGER_Z | PAD_BUTTON_A);
 				if(btn & PAD_BUTTON_A)
 				{
@@ -247,14 +247,14 @@ int main(int argc, char **argv)
 
 			if(read_data(client, (char *)&size, 4) < 0)
 			{
-				printf("read_data() error while reading filesize\n");
+				printf(" read_data() error while reading filesize\n");
 				net_close(client);
 				net_close(listen);
 				goto redo;
 			}
 
-			printf("size: %d\n", size);
-			printf("reading data, please wait...\n");
+			printf(" size: %d\n", size);
+			printf(" reading data, please wait...\n");
 
 			offset = 0;
 			while(offset < size && (read = read_data(client, (char *)bfr, (size - offset) > READ_SIZE ? READ_SIZE : (size - offset))) > 0)
@@ -268,24 +268,24 @@ int main(int argc, char **argv)
 			res = valid_elf_image(data);
 			if(res != 1)
 			{
-				printf("Invalid ELF image.\n");
-				printf("assuming DOL image. your wii will crash if this is just some random file...\n");
+				printf(" Invalid ELF image.\n");
+				printf(" assuming DOL image. your wii will crash if this is just some random file...\n");
 				ep = (void(*)())load_dol_image(data, 1);
 			}
 			else
 			{
-				printf("Loading ELF image...\n");
+				printf(" Loading ELF image...\n");
 				ep = (void(*)())load_elf_image(data);
 			}
-			printf("entry point: 0x%08X\n", (unsigned int)ep);
-			printf("shutting down...\n");
+			printf(" entry point: 0x%08X\n", (unsigned int)ep);
+			printf(" shutting down...\n");
 			__IOS_ShutdownSubsystems();
 			_CPU_ISR_Disable(level);
 			__exception_closeall();
-			printf("jumping to entry point now...\n\n\n\n");
+			printf(" jumping to entry point now...\n\n\n\n");
 			ep();
 			_CPU_ISR_Restore(level);
-			printf("this should not happen :/\n\n");
+			printf(" this should not happen :/\n\n");
 			goto redo;
 		}
 	}
