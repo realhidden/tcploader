@@ -2,18 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __WIN32__
-#include <windows.h>
-#include <winsock.h>
-#define close(s) closesocket(s)
-#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
-#endif
 
 #define BUFFER_SIZE 1 << 10
 #define PORT	8080
@@ -43,23 +37,12 @@ int main(int argc, char *argv[])
 	int size, size2;
 	int sock;
 	struct sockaddr_in addr;
-#ifdef __WIN32__
-	WSADATA wsa;
-#endif
 
 	if(argc != 3)
 	{
 		printf("usage: sendelf [wii ip] [file.elf]\n");
 		return -1;
 	}
-
-#ifdef __WIN32__
-	if (WSAStartup(MAKEWORD(1, 1), &wsa))
-	{
-		printf("WSAStartup() failed, %lu\n", (unsigned long)GetLastError());
-		return EXIT_FAILURE;
-	}
-#endif
 
 	fd = fopen(argv[2], "rb");
 	if(fd == NULL)
@@ -68,12 +51,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-#ifdef __WIN32__
-	addr.sin_addr.S_un.S_addr = inet_addr(argv[1]);
-	if(addr.sin_addr.S_un.S_addr == INADDR_NONE)
-#else
 	if(inet_aton(argv[1], &addr.sin_addr) == 0)
-#endif
 	{
 		perror("inet_aton failed");
 		fclose(fd);
