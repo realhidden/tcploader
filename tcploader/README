@@ -8,9 +8,7 @@ Launch the included elf or dol using your favourite method of launching homebrew
 your console. It will then start listening on port 8080 and wait for a connection of
 the client.
 
-The win32 version of the client doesn't work currently. You'll have to use linux to test this.
+Use henke37 and dasda's gui if you are running on win32. The included binary only works
+on linux.
 
-wii/ contains the wii code
-pc/ contains a small client to send your file
-
-Type 'make' to build it yourself and don't bother me when it doesn't build for you...
+You can get the full source code at http://repo.or.cz/w/svpe-wii.git.
