@@ -149,7 +149,8 @@ int write_data(int s, char *buf, int n)
 int main(int argc, char **argv)
 {
 	unsigned long level;
-	u32 res, offset, read, size, ip, client, btn;
+	u32 res, offset, read, size, ip, btn;
+	s32 client, listen;
 	u8 *oct = (u8 *)&ip;
 	u8 *bfr[READ_SIZE];
 	struct sockaddr_in addr;
@@ -202,7 +203,7 @@ int main(int argc, char **argv)
 
 
 	printf(" Opening socket on port 8080\n");
-	s32 listen = establish(8080);
+	listen = establish(8080);
 
 	if(listen < 0)
 	{
@@ -287,6 +288,10 @@ int main(int argc, char **argv)
 			_CPU_ISR_Restore(level);
 			printf(" this should not happen :/\n\n");
 			goto redo;
+		}
+		else
+		{
+			printf("net_accept() returned %d\n", client);
 		}
 	}
 
