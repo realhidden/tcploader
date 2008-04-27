@@ -9,7 +9,7 @@ include $(DEVKITPPC)/wii_rules
 DEPSDIR		= 	.
 CFLAGS		=	-g -Os -mrvl -Wall $(MACHDEP) $(INCLUDE) -I$(LIBOGC_INC)
 
-LDFLAGS		=	-L$(LIBOGC_LIB) -logc -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map,--section-start,.header=0x80a00000
+LDFLAGS		=	-L$(LIBOGC_LIB) -logc -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map,--section-start,.header=0x81330000
 
 LOADER_OBJS	=	main.o elf.o dol.o
 LOADER_DEPENDS	=	$(LOADER_OBJS:.o=.d)
