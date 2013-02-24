@@ -22,25 +22,7 @@ int main(int argc, char *argv[])
 
 	// doesn't work for some odd reason when this stuff is not done :/
 	VIDEO_Init();
-	PAD_Init();
-
-	switch(VIDEO_GetCurrentTvMode())
-	{
-		case VI_PAL:
-			rmode = &TVPal528IntDf;
-			break;
-		case VI_MPAL:
-			rmode = &TVMpal480IntDf;
-			break;
-		case VI_EURGB60:
-			rmode = &TVNtsc480Prog;
-			break;
-		default:
-		case VI_NTSC:
-			rmode = &TVNtsc480IntDf;
-			break;
-	}
-
+    rmode = VIDEO_GetPreferredMode(NULL);
 	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 	console_init(xfb, 20, 20, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
 

@@ -32,6 +32,7 @@ distribution.
 #include <gccore.h>
 #include <ogc/ipc.h>
 #include <network.h>
+#include <wiiuse/wpad.h>
 
 #define READ_SIZE	(1 << 10)
 
@@ -46,19 +47,18 @@ static GXRModeObj *rmode = NULL;
 
 u8 *data = (u8 *)0x92000000;
 
-static inline u32 wait_for(u32 btn)
+static inline u16 wait_for(u16 btn)
 {
-	u32 btns;
+	u16 btns;
 	while(1)
 	{
-		PAD_ScanPads();
-		btns = PAD_ButtonsHeld(0);
+		WPAD_ScanPads();
+		btns = WPAD_ButtonsDown(0);
 		if(btns & btn)
 			return btns;
-		VIDEO_WaitVSync();
+//		VIDEO_WaitVSync();
 	}
 }
-
 
 extern s32 __STM_Init();
 extern void __exception_closeall();
@@ -157,28 +157,10 @@ int main(int argc, char **argv)
 	void (*ep)();
 
 	VIDEO_Init();
-	PAD_Init();
-
-	switch(VIDEO_GetCurrentTvMode())
-	{
-		case VI_PAL:
-			rmode = &TVPal528IntDf;
-			break;
-		case VI_MPAL:
-			rmode = &TVMpal480IntDf;
-			break;
-		case VI_EURGB60:
-			rmode = &TVNtsc480Prog;
-			break;
-		default:
-		case VI_NTSC:
-			rmode = &TVNtsc480IntDf;
-			break;
-	}
+	rmode = VIDEO_GetPreferredMode(NULL);
 
 	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 	console_init(xfb, 20, 20, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
-
 	VIDEO_Configure(rmode);
 	VIDEO_SetBlack(FALSE);
 	VIDEO_SetNextFramebuffer(xfb);
@@ -193,10 +175,15 @@ int main(int argc, char **argv)
 	printf(" (c) 2008 Sven Peter\n");
 	printf(" Based on bushing's title_listener.c and his networking code.\n");
 	printf(" (c) 2008 bushing\n\n");
+	printf(" Upgraded by realhidden in 2013 \n\n");    
 
+    WPAD_Init();
+    
 	redo:
+    /*
 	printf(" Press A to continue.\n");
-	wait_for(PAD_BUTTON_A);
+	wait_for(WPAD_BUTTON_A);
+    */
 
 	printf(" net_init(), please wait...\n");
 	net_init();
@@ -224,26 +211,11 @@ int main(int argc, char **argv)
 		{
 			printf(" client connected..\n");
 			printf(" Please check the IP address and press A to continue and Z to abort\n");
-			btn = wait_for(PAD_BUTTON_A | PAD_TRIGGER_Z);
-			if(btn & PAD_TRIGGER_Z)
+			btn = wait_for(WPAD_BUTTON_A |  WPAD_NUNCHUK_BUTTON_Z);
+			if(btn &  WPAD_NUNCHUK_BUTTON_Z)
 			{
 				net_close(client);
 				continue;
-			}
-
-			if(((addr.sin_addr.s_addr >> 24) & 0xFF) != oct[0] || ((addr.sin_addr.s_addr >> 16) & 0xFF) != oct[1])
-			{
-				printf(" WARNING: the client is not connecting from your local network.\n");
-				printf(" Please check if you really want to run a file from this IP as it\n");
-				printf(" may be something that bricks your wii from someone you don't even know!!\n");
-				printf(" Press Z if you really want to continue!\n");
-				printf(" Press A to deny the connection and wait for a new client\n");
-				btn = wait_for(PAD_TRIGGER_Z | PAD_BUTTON_A);
-				if(btn & PAD_BUTTON_A)
-				{
-					net_close(client);
-					continue;
-				}
 			}
 
 			if(read_data(client, (char *)&size, 4) < 0)

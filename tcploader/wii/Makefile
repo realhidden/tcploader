@@ -9,13 +9,13 @@ include $(DEVKITPPC)/wii_rules
 DEPSDIR		= 	.
 CFLAGS		=	-g -Os -mrvl -Wall $(MACHDEP) $(INCLUDE) -I$(LIBOGC_INC)
 
-LDFLAGS		=	-L$(LIBOGC_LIB) -logc -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map,--section-start,.header=0x81330000
+LDFLAGS		=	-L$(LIBOGC_LIB) -lwiiuse -logc -lbte -logc -lm -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map -Wl,--section-start,.init=0x81230000
 
 LOADER_OBJS	=	main.o elf.o dol.o
 LOADER_DEPENDS	=	$(LOADER_OBJS:.o=.d)
 
 TCPLOAD_OBJS	=	loader.dol.o preloader.o dol.o
-TCPLOAD_LDFLAGS	=	-L$(LIBOGC_LIB) -logc -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map
+TCPLOAD_LDFLAGS	=	-L$(LIBOGC_LIB) -lwiiuse -logc -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map
 TCPLOAD_DEPENDS :=	$(TCPLOAD_OBJS:.o=.d)
 
 export LD	:=	$(CC)

@@ -34,7 +34,7 @@ u32 load_dol_image (void *dolstart, int print) {
                                 "(0x%08x bytes)\n",
                                 i, dolfile->text_start[i],
                                 dolfile->text_size[i]);
-                        VIDEO_WaitVSync();
+                        //VIDEO_WaitVSync();
 
 			ICInvalidateRange ((void *) dolfile->text_start[i],
                                                     dolfile->text_size[i]);
@@ -53,7 +53,7 @@ u32 load_dol_image (void *dolstart, int print) {
                                 "(0x%08x bytes)\n",
                                 i, dolfile->data_start[i],
                                 dolfile->data_size[i]);
-                        VIDEO_WaitVSync();
+                        //VIDEO_WaitVSync();
 
 			memcpy ((void*) dolfile->data_start[i],
                                  dolstart+dolfile->data_pos[i],
@@ -64,7 +64,7 @@ u32 load_dol_image (void *dolstart, int print) {
 
 		if(print)
                 printf ("clearing bss\n");
-                VIDEO_WaitVSync();
+                //VIDEO_WaitVSync();
 
 		memset ((void *) dolfile->bss_start, 0, dolfile->bss_size);
 		DCFlushRange((void *) dolfile->bss_start, dolfile->bss_size);
